@@ -1,6 +1,7 @@
 <?php
 
 define('BOT_TOKEN', '249487889:AAHvWLef3KgBH_xDagh9t7EuLf-sXZXs9zk');
+define('ADMIN', '160808163');
 define('API_URL', 'https://api.telegram.org/bot'.BOT_TOKEN.'/');
 
 function apiRequestWebhook($method, $parameters) {
@@ -8,7 +9,7 @@ function apiRequestWebhook($method, $parameters) {
     error_log("Method name must be a string\n");
     return false;
   }
-
+// هلوو
   if (!$parameters) {
     $parameters = array();
   } else if (!is_array($parameters)) {
@@ -144,18 +145,108 @@ function processMessage($message) {
   // process incoming message
   $message_id = $message['message_id'];
   $chat_id = $message['chat']['id'];
+  $first_name = $message['from']['first_name'];
+  $id = $message['from']['id'];
+  $username = $message['from']['username'];
+  $US = isset($username)?$username:$first_name;
+  $U = "[".$first_name."](https://telegram.me/".$US.")";
+  $admin = ADMIN;
+  $boolean = file_get_contents('booleans.txt');
+  $booleans= explode("\n",$boolean);
   if (isset($message['text'])) {
     // incoming text message
     $text = $message['text'];
-
+	$matches = explode(" ", $text);
     if (strpos($text, "/start") === 0) {
-      apiRequestJson("sendMessage", array('chat_id' => $chat_id, "text" => "اسلام خوش امديد !\n اين ربات اين امكان را براى شما فراهم ميكند كه بازى هايى مانند سنگ كاغذ قيچى ، ايكس او و .... با دوستان خود انجام دهيد \n اين ربات به صورت اينلاين و دكمه شيشه اى كار ميكند \n ساخته شده توسط 'مهدى'", 'reply_markup' => array(
-            "inline_keyboard"=>array(
-			    array(array("text"=>"بازی XO","switch_inline_query"=>md5(date("YMDms"))),array("text"=>"سنگ کاغذ قیچی (به زودی)","callback_data"=>"m"))
-			)
-		)));
+		apiRequest("sendChatAction", array('chat_id' => $chat_id, "action" => 'typing'));
+      apiRequestJson("sendMessage", array('chat_id' => $chat_id, "text" => "مرحبا ".$U." , لعبة ox😄\nمتوفره على منصة التلي كرام ⚡️\nيمكنك لعبها مع اصدقائك 🎊''","parse_mode"=>"MARKDOWN","disable_web_page_preview"=>"true", 'reply_markup' => array(
+      	"inline_keyboard"=>array(
+			    array(array("text"=>"لعب XO","switch_inline_query"=>md5(date("YMDms"))),array("text"=>"😃","callback_data"=>"m")),array(array("text"=>"الـقـنـاة","url"=>"https://telegram.me/PowerONTeam"))))));
+	$txxt = file_get_contents('members.txt');
+    $membersid= explode("\n",$txxt);
+      if (!in_array($chat_id,$membersid)) {
+        $aaddd = file_get_contents('members.txt');
+        $aaddd .= $chat_id."\n";
+        file_put_contents('members.txt',$aaddd);
     } 
-  }
+  }elseif($text == '/start' && $chat_id == $admin){
+  apiRequest("sendChatAction", array('chat_id' => $chat_id, "action" => 'typing'));
+  apiRequestJson("sendMessage", array('chat_id' => $chat_id, "text" => '
+  Command for admin
+  /setting  setting in bot
+  /setstart set start in bot
+  ',
+  'parse_mode' => 'MARKDOWN',
+  'disable_web_page_preview' => true,
+  'reply_markup' => array("inline_keyboard"=>array(array(array("text"=>"لعب XO","switch_inline_query"=>md5(date("YMDms"))))))));
+}
+}if ($text == '/setting' && $chat_id == $admin) {
+  apiRequestJson("sendChatAction", array('chat_id' => $chat_id, "action" => 'typing'));
+  apiRequestJson("sendMessage", array('chat_id' => $chat_id, "text" => 'admin', 
+  'reply_markup' => array(
+  "keyboard" => array(array('🗣 Send To All'),array('⚓️ Help','👥 Members')),
+    'one_time_keyboard' => true,
+    'selective' => true,
+    'resize_keyboard' => true,
+  )));
+}elseif ($text == "👥 Members" && $chat_id==$admin) {
+$txtt = file_get_contents('members.txt');
+$membersidd= explode("\n",$txtt);
+$mmemcount = count($membersidd) -1; 
+apiRequestJson("sendMessage", array('chat_id' => $chat_id,"parse_mode"=>"HTML", "text" => 'Members: <code>'.$mmemcount.'</code>'));
+}elseif ($text == "⚓️ Help" && $chat_id==$admin) {
+apiRequest("sendChatAction", array('chat_id' => $chat_id, "action" => 'typing'));
+   apiRequest("sendMessage", array('chat_id' => $admin, "text" => "
+🔶 list of available buttons:
+
+🔸`1.` * 🗣 Send To All *
+Send a text message to all users
+-------------------------------
+🔸`2.` * 👥 Members *
+number of users
+-------------------------------
+🔸`3.` /setstart <text>
+set start text on users
+.","parse_mode" =>"MARKDOWN","disable_web_page_preview" => "true",'reply_markup' => array(
+   'keyboard' => array(array('🗣 Send To All'),array('⚓️ Help','👥 Members')),
+   'one_time_keyboard' => true,
+   'selective' => true,
+   'resize_keyboard' => true,
+)));
+
+}elseif ($text =="🗣 Send To All"  && $chat_id == $admin && $booleans[0]=="false") {
+   apiRequest("sendChatAction", array('chat_id' => $chat_id, "action" => 'typing'));
+     apiRequest("sendMessage", array('chat_id' => $chat_id, "text" => "Now Send You <b>Message</b> Sir!" ,"parse_mode" =>"HTML",'reply_markup' => array(
+   'keyboard' => array(array('❌ Stop')),
+   'one_time_keyboard' => true,
+   'selective' => true,
+   'resize_keyboard' => true)));
+ $boolean = file_get_contents('booleans.txt');
+$booleans= explode("\n",$boolean);
+ $addd = "true";
+ file_put_contents('booleans.txt',$addd);
+
+} elseif ($text == "❌ Stop" && $chat_id == $admin && $booleans[0] == "true") {
+   $addd = "false";
+ file_put_contents('booleans.txt',$addd);
+ apiRequest("sendChatAction", array('chat_id' => $chat_id, "action" => 'typing'));
+ apiRequest("sendMessage", array('chat_id' => $admin, "text" => "Good job been sent to all *members*","parse_mode" =>"MARKDOWN",'reply_markup' => array(
+'keyboard' => array(array('🗣 Send To All'),array('⚓️ Help','👥 Members')),
+'one_time_keyboard' => true,
+'selective' => true,
+'resize_keyboard' => true,
+)));
+}
+elseif ($chat_id == $admin && $booleans[0] == "true") {
+$texttoall =$text;
+$ttxtt = file_get_contents('members.txt');
+$membersidd= explode("\n",$ttxtt);
+for($y=0;$y<count($membersidd);$y++){
+   apiRequest("sendChatAction", array('chat_id' => $chat_id, "action" => 'typing'));
+ apiRequest("sendMessage", array('chat_id' => $membersidd[$y], "text" => $texttoall,"parse_mode" =>"HTML"));
+exit;
+ } 
+}
 }
 
 function inlineMessage($inline){
@@ -164,11 +255,13 @@ function inlineMessage($inline){
 	$query=$inline['query'];
 	
 	//apiRequest("sendMessage",array("chat_id"=>111825543,"text"=>json_encode($inline['from'])));
-	apiRequest("answerInlineQuery",array("inline_query_id"=>$id,"results"=>array(array("type"=>"article","id"=>$query,"title"=>"بازی XO","input_message_content"=>array("message_text"=>"<b>بازی XO</b>\n برای شروع روی دگمه زیر کلیک کنید👇🏻👇🏻👇🏻","parse_mode"=>"HTML","disable_web_page_preview"=>false),
-	    "reply_markup"=>array(
+	apiRequest("answerInlineQuery",array("inline_query_id"=>$id,"results"=>array(array("type"=>"article","id"=>$query,"title"=>"العب XO","input_message_content"=>array("message_text"=>"<b>لعبة 🤖 XO</b>\n انقر على الزر أدناه لبدء 👇🏻 👤","parse_mode"=>"HTML","disable_web_page_preview"=>false),
+	"reply_markup"=>array(
 	        "inline_keyboard"=>array(
-			    array(array("text"=>"شروع بازی!","callback_data"=>"play_".$chat_id))
-			)
+array(array("text"=>"بدأ اللعب ! 🎲","callback_data"=>"play_".$chat_id)),
+array(array("text"=>"Channel 🔉 
+","url"=>"https://telegram.me/PowerONTEAM")),
+)
 		)
 	))));
 	exit;
@@ -186,8 +279,8 @@ function callbackMessage($callback){
 	  if(strpos($data, "play") === 0){
 		  $data=explode("_",$data);
 		  if($data[1]==$pv_id){
-			  apiRequest("answerCallbackQuery",array('callback_query_id'=>$callback_id,'text'=>"شما آغاز کننده ی این بازی هستید بنابراین باید یکی از دوستانتان روی دکمه کلیک کنه!",'show_alert'=>false));
-		      exit;
+			  apiRequest("answerCallbackQuery",array('callback_query_id'=>$callback_id,'text'=>"البادئ في هذه اللعبة، لذلك ينبغي عليك النقر على زر لجعلها نقطة لك!",'show_alert'=>false));
+			  exit;
 		  }
 		  else{
 			  $Player1=$data[1]; $P1Name=getChat($Player1);
@@ -199,18 +292,18 @@ function callbackMessage($callback){
 					  $Tab[$i][$j]["callback_data"]=$i.".".$j."_0.0.0.0.0.0.0.0.0_".$Player1.".".$Player2."_1_0";
 				  }
 			  }
-			  $Tab[3][0]["text"]="ترک بازی!";
-			  $Tab[3][0]["callback_data"]="Left";
+			 // $Tab[3][0]["text"]="TEST";
+			//  $Tab[3][0]["inline_keyboard"]["https://telegram.me/PowerONTEAM"];
 			  
-			  apiRequest("editMessageText",array("inline_message_id"=>$message_id,"text"=>"بازی آغاز شد\n\n بازیکن اول:$P1Name(❌)\nبازیکن دوم:$P2Name(⭕️)\n\n هم اکنون نوبت $P1Name(❌) است.","reply_markup"=>array(
-			    "inline_keyboard"=>$Tab 
+			  apiRequest("editMessageText",array("inline_message_id"=>$message_id,"text"=>"بدأت اللعبه 🎲\n\n اللاعب الاول:$P1Name(✖️)\nاللاعب الثاني:$P2Name(⭕️)\n\nقناة البوت 🔉 : @PowerONTEAM","reply_markup"=>array(
+			  	"inline_keyboard"=>$Tab 
 			  )));
 			  exit;
 		  }
 	  }
 	  else if($data=="Left"){
-		  apiRequest("editMessageText",array("inline_message_id"=>$message_id,"text"=>"بازی مورد نظر به اتمام رسید."," reply_markup"=>array(
-			"inline_keyboard"=>$Tab 
+		  apiRequest("editMessageText",array("inline_message_id"=>$message_id,"text"=>"انتهت اللعبة."," reply_markup"=>array(
+		  	"inline_keyboard"=>$Tab 
 		  )));  
 		  exit;
 	  }
@@ -219,8 +312,8 @@ function callbackMessage($callback){
 		  $message_id=$message_id;
 	
 		  
-		  apiRequest("editMessageText",array("inline_message_id"=>$message_id,"text"=>"بازی به اتمام رسیده.","reply_markup"=>array(
-			"inline_keyboard"=>$Tab 
+		  apiRequest("editMessageText",array("inline_message_id"=>$message_id,"text"=>"أكثر من لعبة.","reply_markup"=>array(
+		  	"inline_keyboard"=>$Tab 
 		  )));  
 		  exit;
 	  }
@@ -247,20 +340,20 @@ function callbackMessage($callback){
 			  if($pv_id==$Player1) {
 				$NextTurn=$Player2;
 				$NextTurnNum=2;
-				$Emoji="❌";
+				$Emoji="✖️";
 				$NextEmoji="⭕️";
 			  }
 			  else {
 				$NextTurn=$Player1;
 				$NextTurnNum=1;
 				$Emoji="⭕️";
-				$NextEmoji="❌";
+				$NextEmoji="✖️";
 			  }
 			  //TabComplete
 			  $n=0;
 			  for($ii=0;$ii<3;$ii++){
 				  for($jj=0;$jj<3;$jj++){
-					if((int)$table[$n]==1) $Tab[$ii][$jj]["text"]="❌";  
+					if((int)$table[$n]==1) $Tab[$ii][$jj]["text"]="✖️";  
 					else if((int)$table[$n]==2) $Tab[$ii][$jj]["text"]="⭕️";  
 					else if((int)$table[$n]==0) $Tab[$ii][$jj]["text"]=" ";  
 					$n++;  
@@ -270,24 +363,24 @@ function callbackMessage($callback){
 			  //Tab End
 			  //NextTurn
 			  
-			  if($Tab[$i][$j]["text"]!=" ") apiRequest("answerCallbackQuery",array('callback_query_id'=>$callback_id,'text'=>"شما نمیتوانید دگمه مورد نظر را انتخاب کنید.",'show_alert'=>false));
+			  if($Tab[$i][$j]["text"]!=" ") apiRequest("answerCallbackQuery",array('callback_query_id'=>$callback_id,'text'=>"يمكنك تحديد الزر المطلوب.",'show_alert'=>false));
 			  else{
 				  $Tab[$i][$j]["text"]=$Emoji;
                   //
 				  $n=0;
                   for($i=0;$i<3;$i++){
 					  for($j=0;$j<3;$j++){
-						  if($Tab[$i][$j]["text"]=="❌") $table[$n]=1;  
+						  if($Tab[$i][$j]["text"]=="✖️") $table[$n]=1;  
 						  else if($Tab[$i][$j]["text"]=="⭕️") $table[$n]=2;  
 						  else if($Tab[$i][$j]["text"]==" ") $table[$n]=0;
 						  $n++;
 					  }
 				  }
                   //				  
-				    if(Win($Tab)=="⭕️"||Win($Tab)=="❌") {
+				    if(Win($Tab)=="⭕️"||Win($Tab)=="✖️") {
 						
 						if(Win($Tab)=="⭕️") $winner=getChat($Player2);
-						else if(Win($Tab)=="❌") $winner=getChat($Player1);
+						else if(Win($Tab)=="✖️") $winner=getChat($Player1);
                         
 						$n=0;
                         for($ii=0;$ii<3;$ii++){
@@ -297,8 +390,8 @@ function callbackMessage($callback){
 							}
 						}
 						
-					    apiRequest("editMessageText",array("inline_message_id"=>$message_id,"text"=>"بازیکن اول:$P1Name(❌)\nبازیکن دوم:$P2Name(⭕️)\n\nبرنده:".$winner."(".Win($Tab).")","reply_markup"=>array(
-			                "inline_keyboard"=>$Tab 
+					    apiRequest("editMessageText",array("inline_message_id"=>$message_id,"text"=>"اللاعب الاول :$P1Name(✖️)\nاللاعب الثاني :$P2Name(⭕️)\n\nالفائز :".$winner."(".Win($Tab).")\n\nقناة البوت 🔉 : @PowerONTEAM","reply_markup"=>array(
+					    	"inline_keyboard"=>$Tab 
 			            )));  
 					    exit;
 				    }
@@ -314,8 +407,8 @@ function callbackMessage($callback){
 							}
 						}
 						
-					    apiRequest("editMessageText",array("inline_message_id"=>$message_id,"text"=>"بازیکن اول:$P1Name(❌)\nبازیکن دوم:$P2Name(⭕️)\n\nبازی مساوی شد!","reply_markup"=>array(
-			                "inline_keyboard"=>$Tab 
+					    apiRequest("editMessageText",array("inline_message_id"=>$message_id,"text"=>"اللاعب الاول:$P1Name(✖️)\nاللاعب الثاني:$P2Name(⭕️)\n\nليس هناك نتيجه !\n\nقناة البوت 🔉 : @PowerONTEAM","reply_markup"=>array(
+					    	"inline_keyboard"=>$Tab 
 			            )));  
 					    exit;
 				    }
@@ -333,29 +426,29 @@ function callbackMessage($callback){
 							}
 						}
 						
-						$Tab[3][0]["text"]="ترک بازی!";
-			            $Tab[3][0]["callback_data"]="Left";
+			//			$Tab[3][0]["text"]="ترك اللعبه!";
+			  //          $Tab[3][0]["callback_data"]="Left";
                         //apiRequest("sendMessage",array("chat_id"=>111825543,"text"=>json_encode($Tab)));						
 						//Tab
 						
 						$NextTurn=getChat($NextTurn);
-				        apiRequest("editMessageText",array("inline_message_id"=>$message_id,"text"=>"بازیکن اول:$P1Name(❌)\nبازیکن دوم:$P2Name(⭕️)\n\n هم اکنون نوبت $NextTurn($NextEmoji) است.","reply_markup"=>array(
-			                "inline_keyboard"=>$Tab 
+				        apiRequest("editMessageText",array("inline_message_id"=>$message_id,"text"=>"اللاعب الاول:$P1Name(✖️)\nاللاعب الثاني :$P2Name(⭕️)\n\n الدور الى : $NextTurn($NextEmoji) \n\n قناة البوت 🔉 : @PowerONTEAM","reply_markup"=>array(
+				        	"inline_keyboard"=>$Tab 
 			            )));
 					    exit;
 				    }
 			}
 		}
 		else{
-		    apiRequest("answerCallbackQuery",array('callback_query_id'=>$callback_id,'text'=>"نوبت شما نیست.",'show_alert'=>false));
-			exit;
+		    apiRequest("answerCallbackQuery",array('callback_query_id'=>$callback_id,'text'=>"ليس الان !",'show_alert'=>false));
+		    exit;
 		}
 	}
 	  //apiRequest("sendMessage",array("chat_id"=>111825543,"text"=>$data));
 }
 
 
-define('WEBHOOK_URL', 'https://my-site.example.com/secret-path-for-webhooks/');
+define('WEBHOOK_URL', '');
 
 if (php_sapi_name() == 'cli') {
   // if run from console, set or delete webhook
